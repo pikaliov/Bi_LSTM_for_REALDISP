@@ -10,12 +10,19 @@ from keras.layers import Dropout
 import numpy as np
 import custom_metrics as cus_met
 
-def final_prediction(name, y_pred, y_truth):
+def validate_dataset(name, model, n_timesteps, n_classes):
+
+    # test prediction of the model with a different test subject
+    dataset = read_csv('prepared_' + name + '.csv', header=0, index_col=0)
+
+    # split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]
+    values_X, values_y = split_dataset_into_input_and_output(dataset, n_timesteps, n_classes)
+    y_pred = model.predict(values_X)
 
     # make final prediction => transform float prediction values to int
     # (Softmax => max value in a row = highest likelihood)
     y_pred_final = (y_pred == y_pred.max(axis=1, keepdims=True)).astype(int)
-    f1_score_val = f1_score(y_truth, y_pred_final, average='macro')
+    f1_score_val = f1_score(values_y, y_pred_final, average='macro')
 
     print('F1-Score for ' + name + ': %f' % (f1_score_val))
 
@@ -86,12 +93,13 @@ print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
 # TODO: use a sequence as return (maybe more target y are needed)
 model = Sequential()
 model.add(Bidirectional(LSTM(100), input_shape=(train_X.shape[1], train_X.shape[2])))
-#model.add(Dropout(0.5))
+model.add(Dropout(0.5))
 model.add(Dense(train_y.shape[1], activation='softmax'))
+model.load_weights("model.h5")
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc', cus_met.fbeta_score, ])
 
 # start Training
-history = model.fit(train_X, train_y, batch_size=60, epochs=20, validation_data=[test_X, test_y],verbose=2)
+history = model.fit(train_X, train_y, batch_size=30, epochs=2, validation_data=[test_X, test_y],verbose=2)
 
 # save model to disk
 model.save_weights("model.h5")
@@ -102,27 +110,15 @@ pyplot.plot(history.history['val_fbeta_score'], label='test')
 pyplot.legend()
 #pyplot.show()
 
-y_pred5 = model.predict(test_X)
-final_prediction('Subject5ideal', y_pred5, test_y)
 
+validate_dataset('subject5_ideal', model, n_timesteps, n_classes)
 
-# test prediction of the model with a different test subject
-dataset = read_csv('prepared_subject5_self.csv', header=0, index_col=0)
+validate_dataset('subject5_self', model, n_timesteps, n_classes)
 
-# split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]
-values_X, values_y5self = split_dataset_into_input_and_output(dataset, n_timesteps, n_classes)
-y_pred5self = model.predict(values_X)
-final_prediction('Subject5self', y_pred5self, values_y5self)
+validate_dataset('subject3_ideal', model, n_timesteps, n_classes)
 
+validate_dataset('subject3_self', model, n_timesteps, n_classes)
 
-# test prediction of the model with a different test subject
-dataset = read_csv('prepared_subject3_ideal.csv', header=0, index_col=0)
-
-# split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]
-values_X, values_y3 = split_dataset_into_input_and_output(dataset, n_timesteps, n_classes)
-
-y_pred3 = model.predict(values_X)
-final_prediction('Subject3idel', y_pred3, values_y3)
 
 print('Ende')
 
