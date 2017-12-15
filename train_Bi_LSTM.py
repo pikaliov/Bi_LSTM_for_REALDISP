@@ -65,7 +65,9 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
     # calculate the remainder and drop the remaining data
     # this step is needed before reshaping the dataset
     val_remainder = val.shape[0] % timesteps
-    val= val[:-val_remainder, :]
+
+    if val_remainder > 0:
+        val = val[:-val_remainder, :]
 
     # reshape data for LSTM [samples, timesteps, features] (round because: float => int)
     val = val.reshape((round(val.shape[0] / timesteps), timesteps, val.shape[1]))
@@ -94,10 +96,10 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
 
 
 n_classes = 34
-n_timesteps = 5
+n_timesteps = 2
 
 # load dataset
-dataset = read_csv('prepared_subject5_ideal.csv', header=0, index_col=0)
+dataset = read_csv('prepared_subject3_ideal.csv', header=0, index_col=0)
 
 
 # split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]
@@ -120,12 +122,14 @@ model = Sequential()
 model.add(Bidirectional(LSTM(100), input_shape=(train_X.shape[1], train_X.shape[2])))
 #model.add(Dropout(0.5))
 model.add(Dense(train_y.shape[1], activation='softmax'))
-model = load_model('my_model.h5')
+
+# load existing model from disk
+#model = load_model('my_model.h5')
 
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc']) #cus_met.fbeta_score,
 
 # start Training
-history = model.fit(train_X, train_y, batch_size=600, epochs=5, validation_data=[test_X, test_y],verbose=2)
+history = model.fit(train_X, train_y, batch_size=60, epochs=10, validation_data=[test_X, test_y],verbose=2)
 
 # save model to disk
 model.save('my_model.h5')
@@ -141,9 +145,9 @@ validate_dataset('subject5_ideal', model, n_timesteps, n_classes)
 
 validate_dataset('subject5_self', model, n_timesteps, n_classes)
 
-#validate_dataset('subject3_ideal', model, n_timesteps, n_classes)
+validate_dataset('subject3_ideal', model, n_timesteps, n_classes)
 
-#validate_dataset('subject3_self', model, n_timesteps, n_classes)
+validate_dataset('subject3_self', model, n_timesteps, n_classes)
 
 
 print('Ende')

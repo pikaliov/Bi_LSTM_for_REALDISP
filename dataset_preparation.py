@@ -1,8 +1,8 @@
 from pandas import read_csv
 
 # read the dataset from log file with Tab as Delimiter
-name_logfile = 'subject3_self'
-logfile_path = '../SLTM_Activity_Classification/Dataset/realistic_sensor_displacement/'
+name_logfile = 'subject3_ideal'
+logfile_path = '../Bi_LSTM_for_REALDISP/Dataset/realistic_sensor_displacement/'
 dataset = read_csv(logfile_path + name_logfile + '.log', sep='\t', lineterminator='\n')
 
 # generate labels for the dataset
