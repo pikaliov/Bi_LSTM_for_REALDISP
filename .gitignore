@@ -1,0 +1,7 @@
+# ignore large files
+*.log
+*.csv
+Dataset/
+
+# Environments
+venv/
