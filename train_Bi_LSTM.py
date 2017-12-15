@@ -96,10 +96,11 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
 
 
 n_classes = 34
-n_timesteps = 2
+n_timesteps = 5
+load_existing_model = True
 
 # load dataset
-dataset = read_csv('prepared_subject3_ideal.csv', header=0, index_col=0)
+dataset = read_csv('prepared_subject5_ideal.csv', header=0, index_col=0)
 
 
 # split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]
@@ -118,13 +119,16 @@ print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
 
 
 
-model = Sequential()
-model.add(Bidirectional(LSTM(100), input_shape=(train_X.shape[1], train_X.shape[2])))
-#model.add(Dropout(0.5))
-model.add(Dense(train_y.shape[1], activation='softmax'))
+# load a existing model or create a new model
 
-# load existing model from disk
-#model = load_model('my_model.h5')
+if load_existing_model:
+    model = load_model('my_model.h5')
+else:
+    model = Sequential()
+    model.add(Bidirectional(LSTM(100), input_shape=(train_X.shape[1], train_X.shape[2])))
+    model.add(Dropout(0.5))
+    model.add(Dense(train_y.shape[1], activation='softmax'))
+
 
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc']) #cus_met.fbeta_score,
 
