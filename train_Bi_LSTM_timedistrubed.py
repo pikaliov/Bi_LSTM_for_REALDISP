@@ -24,7 +24,12 @@ def validate_dataset(name, model, n_timesteps, n_classes):
 
     # make final prediction => transform float prediction values to int
     # (Softmax => max value in a row = highest likelihood)
-    y_pred_final = (y_pred == y_pred.max(axis=1, keepdims=True)).astype(int)
+    y_pred_final = (y_pred == y_pred.max(axis=2, keepdims=True)).astype(int)
+
+    # reshape because axis for timesteps is no longer needed
+    y_pred_final = y_pred_final.reshape(y_pred_final.shape[0] * y_pred_final.shape[1], y_pred_final.shape[2])
+    values_y = values_y.reshape(values_y.shape[0] * values_y.shape[1], values_y.shape[2])
+    values_y_dec = values_y_dec.reshape(values_y_dec.shape[0] * values_y_dec.shape[1])
 
     # transform the predicted binary matrix in a decimal vector
     y_pred_dec = np.empty(y_pred_final.shape[0], dtype=np.int)
@@ -44,8 +49,8 @@ def validate_dataset(name, model, n_timesteps, n_classes):
     print('Cohens-Kappa-Score for ' + name + ': %f' % (kappa_score))
 
     # Accuracy Score
-    scores = model.evaluate(values_X, values_y, verbose=0)
-    print('Test accuracy for ' + name + ': ', scores[1])
+    #scores = model.evaluate(values_X, values_y, verbose=0)
+    #print('Test accuracy for ' + name + ': ', scores[1])
 
 
 
@@ -53,6 +58,11 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
 
     # drop the timestamp
     dataset = dataset.drop('Sec', 0)
+
+    # show the distribution of the activities in the dataset
+    #value_count = dataset['Activity'].value_counts(normalize=True)
+    #print(value_count)
+
     # dataset.dropna(inplace=True)
     val = dataset.values
 
@@ -73,24 +83,28 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
     # reshape data for LSTM [samples, timesteps, features] (round because: float => int)
     val = val.reshape((round(val.shape[0] / timesteps), timesteps, val.shape[1]))
 
+    # TODO: delete 0 activitys => imbalanced dataset
+    # TODO: Aktivität 0 ist zu 71% im Datensatz vorhanden. Das zweit häufigste zu 2%
+
     # shuffle the time sequences (shuffles the array along the first axis of a multi-dimensional array)
     np.random.shuffle(val)
 
     # split into input and output data
     # keep only the target y from the end of the sequence
     # (1 sequence of x-timesteps = 1 target y)
-    # TODO: select the the target y which is dominated in the last column
     val_X, val_y_dec = val[:, :, :-1], val[:, :, -1]
 
+    val_y_dec = val_y_dec.reshape(val_X.shape[0], timesteps, 1)
 
     # create a binary output vector (e.g.: Activity 4 => [0,0,0,0,1,0,0,...,0]
     val_y_bin = np.zeros(n_classes * val_y_dec.shape[0] * timesteps, dtype=np.int).reshape(val_y_dec.shape[0], timesteps, n_classes)
     val_y_dec = val_y_dec.astype(int)
 
-    for counter, dec_val in enumerate(val_y_dec):
-        # TODO: counter 0/10 = error; timesteps berücksichtigen 
-        val_y_bin[counter/10, ,dec_val] = 1
-
+    iterator = np.nditer(val_y_dec, flags=['multi_index'])
+    while not iterator.finished:
+        mi = iterator.multi_index
+        val_y_bin[mi[0], mi[1], iterator[0]] = 1
+        iterator.iternext()
 
     #print(val_X.shape, val_y.shape, val_y_bin.shape)
 
@@ -98,12 +112,12 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
 
 
 n_classes = 34
-n_timesteps = 10
+n_timesteps = 20
 load_existing_model = False
 save_model_to_disk = True
 
 # load dataset
-dataset = read_csv('prepared_combination_subject3_ideal_et_al.csv', header=0, index_col=0)
+dataset = read_csv('prepared_combination_subject5_ideal_et_al.csv', header=0, index_col=0)
 
 
 # split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]
@@ -117,9 +131,6 @@ train_y, test_y = values_y[:spl, :],    values_y[spl:, :]
 
 print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
 
-# network architecture
-# TODO: use a sequence as return (maybe more target y are needed)
-
 
 
 # load a existing model or create a new model
@@ -130,14 +141,14 @@ else:
     model = Sequential()
     model.add(Bidirectional(LSTM(50, return_sequences=True), input_shape=(train_X.shape[1], train_X.shape[2])))
     model.add(Dropout(0.5))
-    model.add(TimeDistributed(Dense(train_y.shape[1], activation='softmax')))
+    model.add(TimeDistributed(Dense(train_y.shape[2], activation='softmax')))
     #model.add(Dense(train_y.shape[1], activation='softmax'))
 
 
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc']) #cus_met.fbeta_score,
 
 # start Training
-history = model.fit(train_X, train_y, batch_size=60, epochs=10, validation_data=[test_X, test_y],verbose=2)
+history = model.fit(train_X, train_y, batch_size=30, epochs=10, validation_data=[test_X, test_y],verbose=2)
 
 # save model to disk
 if save_model_to_disk:

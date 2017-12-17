@@ -1,7 +1,7 @@
 from pandas import read_csv
 
 
-logfile_names = ['subject5_self']
+logfile_names = ['subject5_ideal', 'subject3_ideal', 'subject5_self', 'subject3_self']
 logfile_path = '../Bi_LSTM_for_REALDISP/Dataset/realistic_sensor_displacement/'
 
 

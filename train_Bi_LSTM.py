@@ -53,6 +53,11 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
 
     # drop the timestamp
     dataset = dataset.drop('Sec', 0)
+
+    # show the distribution of the activities in the dataset
+    # value_count = dataset['Activity'].value_counts(normalize=True)
+    # print(value_count)
+
     # dataset.dropna(inplace=True)
     val = dataset.values
 
@@ -79,7 +84,6 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
     # split into input and output data
     # keep only the target y from the end of the sequence
     # (1 sequence of x-timesteps = 1 target y)
-    # TODO: select the the target y which is dominated in the last column
     val_X, val_y_dec = val[:, :, :-1], val[:, -1, -1]
 
 
@@ -102,7 +106,7 @@ load_existing_model = False
 save_model_to_disk = True
 
 # load dataset
-dataset = read_csv('prepared_combination_subject3_ideal_et_al.csv', header=0, index_col=0)
+dataset = read_csv('prepared_combination_subject5_ideal_et_al.csv', header=0, index_col=0)
 
 
 # split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]
@@ -116,8 +120,7 @@ train_y, test_y = values_y[:spl, :],    values_y[spl:, :]
 
 print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
 
-# network architecture
-# TODO: use a sequence as return (maybe more target y are needed)
+
 
 
 
@@ -127,7 +130,7 @@ if load_existing_model:
     model = load_model('my_model.h5')
 else:
     model = Sequential()
-    model.add(Bidirectional(LSTM(50, return_sequences=True), input_shape=(train_X.shape[1], train_X.shape[2])))
+    model.add(Bidirectional(LSTM(50), input_shape=(train_X.shape[1], train_X.shape[2])))
     model.add(Dropout(0.5))
     model.add(Dense(train_y.shape[1], activation='softmax'))
 
@@ -135,7 +138,7 @@ else:
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc']) #cus_met.fbeta_score,
 
 # start Training
-history = model.fit(train_X, train_y, batch_size=60, epochs=10, validation_data=[test_X, test_y],verbose=2)
+history = model.fit(train_X, train_y, batch_size=30, epochs=10, validation_data=[test_X, test_y],verbose=2)
 
 # save model to disk
 if save_model_to_disk:
