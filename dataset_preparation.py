@@ -1,24 +1,44 @@
 from pandas import read_csv
 
-# read the dataset from log file with Tab as Delimiter
-name_logfile = 'subject3_ideal'
+
+logfile_names = ['subject5_self']
 logfile_path = '../Bi_LSTM_for_REALDISP/Dataset/realistic_sensor_displacement/'
-dataset = read_csv(logfile_path + name_logfile + '.log', sep='\t', lineterminator='\n')
 
-# generate labels for the dataset
-columns_names = ['Sec', 'MicSec']
-for x in range(117):
-    columns_names.append('Sensor%d' % (x))
-columns_names.append('Activity')
-dataset.columns = columns_names
 
-# Summarize both time columns to one column in Seconds
-dataset['Sec'] = dataset['Sec'] + dataset['MicSec']*float(0.0000001)
-dataset = dataset.drop(columns=['MicSec'])
-dataset.index.name = 'index'
+for counter, name in enumerate(logfile_names):
 
-print(dataset.head())
+    # read the dataset from log file with Tab as Delimiter
+    dataset = read_csv(logfile_path + name + '.log', sep='\t', lineterminator='\n')
 
-# save prepared dataset as csv file
-dataset.to_csv('prepared_' + name_logfile + '.csv')
+    # generate labels for the dataset
+    columns_names = ['Sec', 'MicSec']
+    for x in range(117):
+        columns_names.append('Sensor%d' % (x))
+    columns_names.append('Activity')
+    dataset.columns = columns_names
+
+    # Summarize both time columns to one column in Seconds
+    dataset['Sec'] = dataset['Sec'] + dataset['MicSec'] * float(0.0000001)
+    dataset = dataset.drop(columns=['MicSec'])
+    dataset.index.name = 'index'
+
+    #print(dataset.head())
+
+    if len(logfile_names) > 1:
+        if counter == 0:
+            # Overwrite a existing file at the first loop run
+            print('Combining %d logfiles to one CSV-File' % len(logfile_names))
+            dataset.to_csv('prepared_' + 'combination_' + logfile_names[0] + '_et_al' + '.csv', mode='w', index=False)
+        else:
+            # Append the following logfiles to the existing csv-file
+            dataset.to_csv('prepared_' + 'combination_' + logfile_names[0] + '_et_al' + '.csv', mode='a', header=False, index=False)
+
+
+    else:
+        dataset.to_csv('prepared_' + logfile_names[0] + '.csv', index=False)
+
+    print('Finished preparing %d logfile ' % (counter + 1))
+
+print('Finished logfile queue!')
+
 

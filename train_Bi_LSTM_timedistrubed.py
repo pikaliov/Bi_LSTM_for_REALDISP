@@ -80,15 +80,16 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
     # keep only the target y from the end of the sequence
     # (1 sequence of x-timesteps = 1 target y)
     # TODO: select the the target y which is dominated in the last column
-    val_X, val_y_dec = val[:, :, :-1], val[:, -1, -1]
+    val_X, val_y_dec = val[:, :, :-1], val[:, :, -1]
 
 
     # create a binary output vector (e.g.: Activity 4 => [0,0,0,0,1,0,0,...,0]
-    val_y_bin = np.zeros(n_classes * val_y_dec.shape[0], dtype=np.int).reshape(val_y_dec.shape[0], n_classes)
+    val_y_bin = np.zeros(n_classes * val_y_dec.shape[0] * timesteps, dtype=np.int).reshape(val_y_dec.shape[0], timesteps, n_classes)
     val_y_dec = val_y_dec.astype(int)
 
     for counter, dec_val in enumerate(val_y_dec):
-        val_y_bin[counter, dec_val] = 1
+        # TODO: counter 0/10 = error; timesteps berücksichtigen 
+        val_y_bin[counter/10, ,dec_val] = 1
 
 
     #print(val_X.shape, val_y.shape, val_y_bin.shape)
@@ -129,7 +130,8 @@ else:
     model = Sequential()
     model.add(Bidirectional(LSTM(50, return_sequences=True), input_shape=(train_X.shape[1], train_X.shape[2])))
     model.add(Dropout(0.5))
-    model.add(Dense(train_y.shape[1], activation='softmax'))
+    model.add(TimeDistributed(Dense(train_y.shape[1], activation='softmax')))
+    #model.add(Dense(train_y.shape[1], activation='softmax'))
 
 
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc']) #cus_met.fbeta_score,
