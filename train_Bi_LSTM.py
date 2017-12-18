@@ -84,7 +84,7 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes, reduce_ov
     # shuffle the time sequences (shuffles the array along the first axis of a multi-dimensional array)
     np.random.shuffle(val)
 
-    # shrink the first overrepresented class to the double size of the second overrepresented class
+    # shrink the first overrepresented class to the double size of the second overrepresented class (Undersampling)
     # Attention: This shrink method should only be used, if the likelihood is high that the all following
     # timesteps (in val.shape[1]) have the same class
     if reduce_overrepresented_class:
@@ -116,8 +116,6 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes, reduce_ov
 
 
 
-
-
     # split into input and output data
     # keep only the target y from the end of the sequence
     # (1 sequence of x-timesteps = 1 target y)
@@ -138,7 +136,7 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes, reduce_ov
 
 
 n_classes = 34
-n_timesteps = 20
+n_timesteps = 10
 load_existing_model = False
 save_model_to_disk = True
 
@@ -147,7 +145,8 @@ dataset = read_csv('prepared_combination_subject5_ideal_et_al.csv', header=0, in
 
 
 # split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]
-values_X, values_y, _ = split_dataset_into_input_and_output(dataset, n_timesteps, n_classes, reduce_overrepresented_class=False)
+values_X, values_y, _ = split_dataset_into_input_and_output(dataset, n_timesteps, n_classes,
+                                                            reduce_overrepresented_class=True)
 
 # split into train and test sets
 train_to_test_ratio = 0.7
@@ -165,6 +164,7 @@ if load_existing_model:
 else:
     model = Sequential()
     model.add(Bidirectional(LSTM(50), input_shape=(train_X.shape[1], train_X.shape[2])))
+    model.add(Dense(40, activation='sigmoid'))
     model.add(Dropout(0.5))
     model.add(Dense(train_y.shape[1], activation='softmax'))
 
@@ -172,7 +172,7 @@ else:
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc']) #cus_met.fbeta_score,
 
 # start Training
-history = model.fit(train_X, train_y, batch_size=60, epochs=10, validation_data=[test_X, test_y],verbose=2)
+history = model.fit(train_X, train_y, batch_size=60, epochs=10, validation_data=[test_X, test_y], verbose=2)
 
 # save model to disk
 if save_model_to_disk:
