@@ -14,5 +14,6 @@ Include:
 
 
 ### Citing
-The Bidirectional-LSTM is a special recurrent neural network (RNN), which was defined by [J. Schmidhuber & A. Graves](http://www.sciencedirect.com/science/article/pii/S0893608005001206).
-The Stacked Denoising Autoencoder was defined by [P. Vincent, H. Larochelle, I. Lajoie, Y. Bengio, et al.](http://www.jmlr.org/papers/v11/vincent10a.html).
+- Bidirectional-LSTM: [Schmidhuber, J., Graves, A.: Framewise phoneme classification with bidirectional LSTM and other neural network architectures. In: Neural Networks. 2005, H. 5-6, S. 602…610](http://www.sciencedirect.com/science/article/pii/S0893608005001206)
+
+- Stacked Denoising: [Vincent, P., Larochelle, H., Lajoie, I., Bengio, Y., et al.:  Stacked Denoising Autoencoders: Learning Useful Representations in a Deep Network with a Local Denoising Criterion, In: Journal of Machine Learning Research. 2010, H. 11, S. 3371…3408.](http://www.jmlr.org/papers/v11/vincent10a.html)
