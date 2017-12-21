@@ -3,7 +3,8 @@ from matplotlib import pyplot
 
 
 #load dataset
-dataset = read_csv('prepared_subject5_ideal.csv' , header=0, index_col=0)
+prepared_dataset_path = '../Dataset/'
+dataset = read_csv(prepared_dataset_path + 'prepared_subject5_ideal.csv', header=0, index_col=0)
 values = dataset.values
 
 #specifiy columns to plot

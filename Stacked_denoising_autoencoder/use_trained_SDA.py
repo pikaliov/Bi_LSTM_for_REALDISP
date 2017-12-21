@@ -7,9 +7,10 @@ from sklearn.externals import joblib
 
 
 dataset_name = 'prepared_subject3_ideal.csv'
+prepared_dataset_path = '../Dataset/'
 
 # load dataset
-dataset = read_csv(dataset_name, header=0, index_col=0)
+dataset = read_csv(prepared_dataset_path + dataset_name, header=0, index_col=0)
 
 # drop the timestamp
 dataset = dataset.drop('Sec', 0)

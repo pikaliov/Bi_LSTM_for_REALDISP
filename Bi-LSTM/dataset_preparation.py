@@ -2,7 +2,8 @@ from pandas import read_csv
 
 
 logfile_names = ['subject5_ideal', 'subject3_ideal', 'subject5_self', 'subject3_self']
-logfile_path = '../Bi_LSTM_for_REALDISP/Dataset/realistic_sensor_displacement/'
+logfile_path = '../Dataset/realistic_sensor_displacement/'
+prepared_dataset_output_path = '../Dataset/'
 
 
 for counter, name in enumerate(logfile_names):
@@ -35,7 +36,7 @@ for counter, name in enumerate(logfile_names):
 
 
     else:
-        dataset.to_csv('prepared_' + logfile_names[0] + '.csv', index=False)
+        dataset.to_csv(prepared_dataset_output_path + 'prepared_' + logfile_names[0] + '.csv', index=False)
 
     print('Finished preparing %d logfile ' % (counter + 1))
 

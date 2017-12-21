@@ -11,12 +11,12 @@ from keras.layers import Dropout
 from keras.models import load_model
 from keras.layers import TimeDistributed
 import numpy as np
-import custom_metrics as cus_met
+
 
 def validate_dataset(name, model, n_timesteps, n_classes):
 
     # test prediction of the model with a different test subject
-    dataset = read_csv('prepared_' + name + '.csv', header=0, index_col=0)
+    dataset = read_csv(prepared_dataset_path + 'prepared_' + name + '.csv', header=0, index_col=0)
 
     # split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]
     values_X, values_y, values_y_dec = split_dataset_into_input_and_output(dataset, n_timesteps, n_classes)
@@ -110,14 +110,15 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes ):
 
     return val_X, val_y_bin, val_y_dec
 
-
+# init
 n_classes = 34
 n_timesteps = 20
 load_existing_model = False
 save_model_to_disk = True
+prepared_dataset_path = '../Dataset/'
 
 # load dataset
-dataset = read_csv('prepared_combination_subject5_ideal_et_al.csv', header=0, index_col=0)
+dataset = read_csv(prepared_dataset_path + 'prepared_combination_subject5_ideal_et_al.csv', header=0, index_col=0)
 
 
 # split the dataset into input and output data and reshape input for LSTM [samples, timesteps, features]

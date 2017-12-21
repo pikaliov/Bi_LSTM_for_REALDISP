@@ -8,6 +8,8 @@ from sklearn.externals import joblib
 
 # init Model
 dataset_name = 'prepared_subject3_ideal.csv'
+prepared_dataset_path = '../Dataset/'
+
 activation_function = 'softmax'
 layer_epoch = 10000
 sda_dims = [100, 70, 50, 30]
@@ -24,7 +26,7 @@ for x in range(len(sda_dims)):
 
 
 # load dataset
-dataset = read_csv(dataset_name, header=0, index_col=0)
+dataset = read_csv(prepared_dataset_path + dataset_name, header=0, index_col=0)
 
 # drop the timestamp
 dataset = dataset.drop('Sec', 0)
