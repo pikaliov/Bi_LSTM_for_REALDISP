@@ -1,6 +1,7 @@
-# ignore large files
+# ignore files
 *.log
 *.csv
+*.sav
 Dataset/
 
 # Environments

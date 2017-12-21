@@ -9,7 +9,6 @@ from keras.layers import LSTM
 from keras.layers import Bidirectional
 from keras.layers import Dropout
 from keras.models import load_model
-from keras.layers import TimeDistributed
 import numpy as np
 import custom_metrics as cus_met
 
@@ -66,11 +65,11 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes, reduce_ov
     val = val.astype('float32')
 
     # normalize only the input features
-    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler = MinMaxScaler(feature_range=(-1, 1))
     val[:, :-1] = scaler.fit_transform(val[:, :-1])
 
     # calculate the remainder and drop the remaining data
-    # this step is needed before reshaping the dataset
+    # this step is needed before reshaping the dataset (=> verifies that all
     val_remainder = val.shape[0] % timesteps
 
     if val_remainder > 0:
@@ -117,7 +116,7 @@ def split_dataset_into_input_and_output(dataset, timesteps, n_classes, reduce_ov
 
 
     # split into input and output data
-    # keep only the target y from the end of the sequence
+    # keep only the target y from the end of the sequence [:, -1, -1]
     # (1 sequence of x-timesteps = 1 target y)
     val_X, val_y_dec = val[:, :, :-1], val[:, -1, -1]
 
