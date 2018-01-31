@@ -1,15 +1,21 @@
 from pandas import read_csv
 
+subject_number = [1,2,3,4,5,7,8,9,10]
+logfile_names = []
+for subject in subject_number:
+    logfile_names.append('subject{}_ideal'.format(subject))
+    logfile_names.append('subject{}_self'.format(subject))
 
-logfile_names = ['subject5_ideal', 'subject3_ideal', 'subject5_self', 'subject3_self']
+#logfile_names = ['subject5_ideal', 'subject3_ideal', 'subject5_self', 'subject3_self', 'subject4_ideal', 'subject4_self']
 logfile_path = '../Dataset/realistic_sensor_displacement/'
 prepared_dataset_output_path = '../Dataset/'
 
+save_as_HDF5_File = True
 
 for counter, name in enumerate(logfile_names):
 
     # read the dataset from log file with Tab as Delimiter
-    dataset = read_csv(logfile_path + name + '.log', sep='\t', lineterminator='\n')
+    dataset = read_csv(logfile_path + name + '.log', sep='\t', lineterminator='\n', header=None)
 
     # generate labels for the dataset
     columns_names = ['Sec', 'MicSec']
@@ -28,17 +34,30 @@ for counter, name in enumerate(logfile_names):
     if len(logfile_names) > 1:
         if counter == 0:
             # Overwrite a existing file at the first loop run
-            print('Combining %d logfiles to one CSV-File' % len(logfile_names))
-            dataset.to_csv('prepared_' + 'combination_' + logfile_names[0] + '_et_al' + '.csv', mode='w', index=False)
+            print('Combining {} logfiles to one File'.format(len(logfile_names)))
+            if save_as_HDF5_File:
+                dataset.to_hdf(prepared_dataset_output_path + 'prepared_' + 'combination_' + logfile_names[0] + '_et_al' + '.hdf', 'key', mode='w',
+                               append=True)
+            else:
+                dataset.to_csv(prepared_dataset_output_path + 'prepared_' + 'combination_' + logfile_names[0] + '_et_al' + '.csv', mode='w',
+                               index=False)
         else:
             # Append the following logfiles to the existing csv-file
-            dataset.to_csv('prepared_' + 'combination_' + logfile_names[0] + '_et_al' + '.csv', mode='a', header=False, index=False)
+            if save_as_HDF5_File:
+                dataset.to_hdf(prepared_dataset_output_path + 'prepared_' + 'combination_' + logfile_names[0] + '_et_al' + '.hdf', 'key', mode='a',
+                               append=True)
+            else:
+                dataset.to_csv(prepared_dataset_output_path + 'prepared_' + 'combination_' + logfile_names[0] + '_et_al' + '.csv', mode='a',
+                               header=False, index=False)
 
 
     else:
-        dataset.to_csv(prepared_dataset_output_path + 'prepared_' + logfile_names[0] + '.csv', index=False)
+        if save_as_HDF5_File:
+            dataset.to_hdf(prepared_dataset_output_path + 'prepared_' + logfile_names[0] + '.hdf', 'key')
+        else:
+            dataset.to_csv(prepared_dataset_output_path + 'prepared_' + logfile_names[0] + '.csv', index=False)
 
-    print('Finished preparing %d logfile ' % (counter + 1))
+    print('Finished preparing {} logfile '.format(name))
 
 print('Finished logfile queue!')
 
